@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - StudyGenie</title>
+    <link rel="stylesheet" href="./CSS Codes/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Create StudyGenie Account</h2>
+        <input type="text" id="username" placeholder="Username" autocomplete="off">
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password">
+        <button onclick="register()">Register</button>
+        <div class="auth-link">
+            Already have an account? <a href="login.html">Login here</a>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function register() {
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const messageDiv = document.getElementById('message');
+
+            messageDiv.innerHTML = '';
+            messageDiv.className = '';
+
+            if (!username || !email || !password || !confirmPassword) {
+                messageDiv.textContent = 'All fields are required';
+                messageDiv.className = 'error';
+                return;
+            }
+
+            if (username.length < 3) {
+                messageDiv.textContent = 'Username must be at least 3 characters';
+                messageDiv.className = 'error';
+                return;
+            }
+
+            if (!email.includes('@') || !email.includes('.')) {
+                messageDiv.textContent = 'Please enter a valid email address';
+                messageDiv.className = 'error';
+                return;
+            }
+
+            if (password.length < 4) {
+                messageDiv.textContent = 'Password must be at least 4 characters';
+                messageDiv.className = 'error';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                messageDiv.textContent = 'Passwords do not match';
+                messageDiv.className = 'error';
+                return;
+            }
+
+            const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+
+            if (existingUsers.some(user => user.username === username)) {
+                messageDiv.textContent = 'Username already exists. Please choose another.';
+                messageDiv.className = 'error';
+                return;
+            }
+
+            if (existingUsers.some(user => user.email === email)) {
+                messageDiv.textContent = 'Email already registered. Please login.';
+                messageDiv.className = 'error';
+                return;
+            }
+
+            const newUser = { username, email, password };
+            existingUsers.push(newUser);
+            localStorage.setItem('users', JSON.stringify(existingUsers));
+            localStorage.setItem('user', JSON.stringify({ username, email }));
+
+            messageDiv.textContent = 'Registration successful! Redirecting...';
+            messageDiv.className = 'success';
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - StudyGenie</title>
+    <link rel="stylesheet" href="../CSS Codes/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Welcome Back to StudyGenie</h2>
+        <input type="text" id="username" placeholder="Username" autocomplete="off">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div class="auth-link">
+            Don't have an account? <a href="register.html">Register here</a>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            // Clear previous messages
+            messageDiv.innerHTML = '';
+            messageDiv.className = '';
+            
+            if (!username || !password) {
+                messageDiv.textContent = 'Please enter username and password';
+                messageDiv.className = 'error';
+                return;
+            }
+            
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                // Successful login
+                localStorage.setItem('user', JSON.stringify({ username: user.username, email: user.email }));
+                messageDiv.textContent = 'Login successful! Redirecting...';
+                messageDiv.className = 'success';
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            } else {
+                // Failed login
+                messageDiv.textContent = 'Invalid username or password';
+                messageDiv.className = 'error';
+            }
+        }
+    </script>
+</body>
+</html>

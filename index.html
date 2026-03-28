@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>StudyGenie – Ultimate Learning Assistant</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js for dashboard -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ========== GLOBAL VARIABLES ========== */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --border: rgba(226, 232, 240, 0.6);
+      --primary: #8b5cf6;
+      --primary-dark: #7c3aed;
+      --primary-light: #a78bfa;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+      --shadow-lg: 0 25px 50px -12px rgba(0,0,0,0.3);
+      --radius: 1.5rem;
+      --radius-sm: 1rem;
+    }
+
+    /* Dark theme */
+    body.dark {
+      --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
+      --card-bg: rgba(15, 23, 42, 0.92);
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --border: rgba(51, 65, 85, 0.8);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-primary);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Animated background pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+      opacity: 0.5;
+      z-index: 0;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      backdrop-filter: blur(2px);
+    }
+
+    /* Topbar glass */
+    .topbar {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding: 0 2rem;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #fff, #f0f0ff);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #8b5cf6;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .brand-text h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, #e0e7ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .brand-text span {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .auth-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .theme-toggle, .mic-btn, .timer-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 40px;
+      cursor: pointer;
+      color: white;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+    }
+    .theme-toggle:hover, .mic-btn:hover, .timer-toggle:hover {
+      background: rgba(255,255,255,0.4);
+      transform: scale(1.05);
+    }
+
+    .auth-btn {
+      background: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+
+    /* Tabs */
+    .main-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 20px 24px 0;
+    }
+    .tab-btn {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      border: none;
+      padding: 12px 28px;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      transition: all 0.3s;
+    }
+    .tab-btn.active {
+      background: white;
+      color: #8b5cf6;
+      box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2);
+    }
+    .tab-content {
+      display: none;
+      animation: fadeInUp 0.5s ease;
+    }
+    .tab-content.active { display: block; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Chat layout (from second code) */
+    .workspace {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+      padding: 20px 24px;
+    }
+    .sidebar, .main {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s;
+    }
+    .sidebar:hover, .main:hover { transform: translateY(-4px); }
+    .sidebar-head {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-list {
+      padding: 16px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .history-item {
+      background: rgba(255,255,255,0.6);
+      border-radius: 20px;
+      padding: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .history-item:hover { transform: translateX(4px); background: white; }
+    .level-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .level-btn {
+      background: #e2e8f0;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .level-btn.active {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: white;
+    }
+    .chat-area {
+      height: 400px;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .message {
+      max-width: 80%;
+      padding: 12px 18px;
+      border-radius: 24px;
+      animation: slideIn 0.3s;
+    }
+    .user { align-self: flex-end; background: #8b5cf6; color: white; border-bottom-right-radius: 4px; }
+    .assistant { align-self: flex-start; background: white; border-bottom-left-radius: 4px; }
+    .system {
+      align-self: center;
+      background: #eef2ff;
+      color: #475569;
+      font-size: 0.8rem;
+      padding: 8px 16px;
+      border-radius: 999px;
+      text-align: center;
+    }
+    .input-area {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255,255,255,0.6);
+      border-top: 1px solid var(--border);
+    }
+    .input-area input {
+      flex: 1;
+      padding: 12px 20px;
+      border-radius: 40px;
+      border: 1px solid #cbd5e1;
+      background: white;
+    }
+    .send-btn {
+      background: #8b5cf6;
+      color: white;
+      border: none;
+      padding: 0 28px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* Assignment & Test containers (from second code) */
+    .assignment-container, .test-container {
+      padding: 28px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 28px;
+      margin: 20px 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .assignment-header h2, .test-header h2 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .assignment-form {
+      background: linear-gradient(135deg, #f8fafc, #ffffff);
+      padding: 28px;
+      border-radius: 20px;
+      margin-bottom: 32px;
+      border: 1px solid rgba(226, 232, 240, 0.5);
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .submit-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+    }
+    .submission-item {
+      background: linear-gradient(135deg, #f8fafc, #ffffff);
+      padding: 18px;
+      border-radius: 16px;
+      margin-bottom: 14px;
+      border-left: 4px solid var(--primary);
+      transition: all 0.3s ease;
+    }
+    .submission-item:hover {
+      transform: translateX(4px);
+      box-shadow: var(--shadow);
+    }
+    .submission-title {
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .submission-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* Test styling */
+    .test-controls {
+      display: flex;
+      gap: 12px;
+      margin: 24px 0;
+      flex-wrap: wrap;
+    }
+    .test-controls input, .test-controls select {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 1rem;
+    }
+    .test-controls button {
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .question-card {
+      background: linear-gradient(135deg, #f8fafc, #ffffff);
+      padding: 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      border-left: 4px solid var(--primary);
+    }
+    .options {
+      margin-left: 20px;
+      margin-top: 12px;
+    }
+    .option {
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+    .submit-test-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      width: 100%;
+    }
+    .score-card {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 28px;
+      border-radius: 20px;
+      text-align: center;
+    }
+    .score {
+      font-size: 56px;
+      font-weight: 800;
+      margin: 16px 0;
+    }
+
+    /* Dashboard widgets */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      padding: 24px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-radius: 28px;
+      padding: 24px;
+      text-align: center;
+      transition: 0.3s;
+    }
+    .stat-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .stat-value { font-size: 2rem; font-weight: 800; }
+    .xp-bar {
+      background: #e2e8f0;
+      border-radius: 20px;
+      height: 10px;
+      margin: 15px 0;
+    }
+    .xp-fill {
+      background: linear-gradient(90deg, #f59e0b, #10b981);
+      width: 0%;
+      height: 100%;
+      border-radius: 20px;
+    }
+    .badge-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .badge {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Timer widget */
+    .timer-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(12px);
+      padding: 12px 20px;
+      border-radius: 60px;
+      color: white;
+      font-weight: bold;
+      display: flex;
+      gap: 15px;
+      z-index: 200;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .timer-widget:hover { transform: scale(1.02); background: rgba(0,0,0,0.85); }
+
+    /* Voice recording pulse */
+    .mic-btn.recording { background: #ef4444; animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); } 100% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } }
+
+    /* PDF section */
+    .pdf-section {
+      margin: 20px 24px 40px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+    .pdf-header {
+      background: linear-gradient(135deg, #f8fbff, #ffffff);
+      padding: 20px 28px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    }
+    .pdf-badge {
+      font-size: 0.85rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 40px;
+    }
+    .pdf-viewer iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .pdf-controls {
+      padding: 20px 28px;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .pdf-controls input {
+      flex: 1;
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      border-radius: 40px;
+    }
+    .pdf-controls button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 40px;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .workspace { grid-template-columns: 1fr; }
+      .sidebar { order: 2; max-height: 280px; }
+      .pdf-viewer iframe { height: 400px; }
+    }
+    @media (max-width: 768px) {
+      .topbar { padding: 0 16px; height: auto; flex-wrap: wrap; }
+      .brand-text span { display: none; }
+      .main-tabs { flex-wrap: wrap; }
+      .input-area { flex-direction: column; }
+      .send-btn { padding: 12px; }
+      .test-controls { flex-direction: column; }
+      .assignment-container, .test-container { margin: 12px; padding: 16px; }
+      .pdf-viewer iframe { height: 300px; }
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"><i class="fas fa-brain"></i></div>
+      <div class="brand-text"><h1>StudyGenie</h1><span>AI-Powered Learning</span></div>
+    </div>
+    <div class="auth-actions">
+      <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+      <button class="mic-btn" id="voiceBtn"><i class="fas fa-microphone"></i></button>
+      <button class="timer-toggle" id="timerToggleBtn"><i class="fas fa-hourglass-half"></i></button>
+      <div id="userInfo"><span id="userNameDisplay"></span><button class="auth-btn" id="logoutBtn">Logout</button></div>
+    </div>
+  </div>
+
+  <div class="main-tabs">
+    <button class="tab-btn active" data-tab="chat">💬 Chat</button>
+    <button class="tab-btn" data-tab="assignment">📎 Assignment</button>
+    <button class="tab-btn" data-tab="test">📝 Test</button>
+    <button class="tab-btn" data-tab="dashboard">📊 Progress</button>
+    <button class="tab-btn" data-tab="flashcards">🃏 Flashcards</button>
+    <button class="tab-btn" data-tab="notes">📓 Notes</button>
+  </div>
+
+  <!-- Chat Tab (full from second code) -->
+  <div id="chatTab" class="tab-content active">
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="sidebar-head"><h2>Conversation History</h2><div class="sidebar-actions"><button class="ghost-btn" id="newChatBtn">New Chat</button><button class="ghost-btn" id="clearHistoryBtn">Clear</button></div></div>
+        <div class="history-list" id="historyList"></div>
+      </aside>
+      <main class="main">
+        <div class="level-bar" id="levelBar"></div>
+        <div class="chat-area" id="chatArea"></div>
+        <div class="input-area"><input type="text" id="questionInput" placeholder="Ask your doubt..."><button class="send-btn" id="sendBtn">Send</button></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Assignment Tab (full from second code) -->
+  <div id="assignmentTab" class="tab-content">
+    <div class="assignment-container">
+      <div class="assignment-header"><h2>📎 Upload Assignment</h2><p>Submit your homework or project for review</p></div>
+      <div class="assignment-form">
+        <div class="form-group"><label>Topic/Subject</label><input type="text" id="assignmentTopic" placeholder="e.g., Photosynthesis, Algebra, etc."></div>
+        <div class="form-group"><label>Description</label><textarea id="assignmentDescription" rows="4" placeholder="Describe your assignment..."></textarea></div>
+        <div class="form-group"><label>Upload File</label><input type="file" id="assignmentFile" accept=".pdf,.doc,.docx,.txt,.jpg,.png"><small>Supported: PDF, DOC, TXT, Images (Max 10MB)</small></div>
+        <button class="submit-btn" id="submitAssignmentBtn">Submit Assignment</button>
+      </div>
+      <div class="assignments-list"><h3>Your Submissions</h3><div id="submissionsList"></div></div>
+    </div>
+  </div>
+
+  <!-- Test Tab (full from second code) -->
+  <div id="testTab" class="tab-content">
+    <div class="test-container">
+      <div class="test-header"><h2>📝 Test Yourself</h2><p>Generate practice questions on any topic</p></div>
+      <div class="test-controls">
+        <input type="text" id="testTopic" placeholder="Enter topic (e.g., Photosynthesis, Fractions, etc.)">
+        <select id="testLevel">
+          <option value="class6">6th Grade</option><option value="class7">7th Grade</option><option value="class8">8th Grade</option>
+          <option value="class9">9th Grade</option><option value="class10">10th Grade</option><option value="class11">11th Grade</option>
+          <option value="class12">12th Grade</option><option value="jee">JEE Level</option>
+        </select>
+        <button id="generateTestBtn">Generate Test</button>
+      </div>
+      <div id="testQuestions" class="test-questions"></div>
+      <div id="testResults" class="test-results"></div>
+    </div>
+  </div>
+
+  <!-- Progress Dashboard Tab -->
+  <div id="dashboardTab" class="tab-content">
+    <div class="dashboard-grid">
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-value" id="totalXP">0</div><div>XP Total</div><div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div><div>Level <span id="levelNum">1</span></div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-fire"></i></div><div class="stat-value" id="streakDays">0</div><div>Day Streak</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-question-circle"></i></div><div class="stat-value" id="totalQuestions">0</div><div>Questions Asked</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-trophy"></i></div><div class="stat-value" id="testsCompleted">0</div><div>Tests Completed</div></div>
+    </div>
+    <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="stat-card"><h3>🏆 Achievements</h3><div id="badgesList" class="badge-grid"></div></div>
+      <div class="stat-card"><h3>📈 Subject Performance</h3><canvas id="subjectChart" width="300" height="200"></canvas></div>
+    </div>
+    <div class="stat-card" style="margin: 20px;"><h3>✨ Smart Recommendations</h3><div id="recommendations"></div></div>
+  </div>
+
+  <!-- Flashcards Tab -->
+  <div id="flashcardsTab" class="tab-content">
+    <div class="assignment-container"><h2>📇 Create Flashcard</h2>
+      <div class="assignment-form">
+        <div class="form-group"><label>Question</label><input id="flashcardQuestion" placeholder="e.g., What is photosynthesis?"></div>
+        <div class="form-group"><label>Answer</label><textarea id="flashcardAnswer" rows="2" placeholder="Answer..."></textarea></div>
+        <button id="addFlashcardBtn" class="submit-btn">Add Flashcard</button>
+      </div>
+      <div id="flashcardList" class="assignments-list"></div>
+    </div>
+  </div>
+
+  <!-- Notes Tab -->
+  <div id="notesTab" class="tab-content">
+    <div class="assignment-container"><h2>📝 Study Notes</h2>
+      <div class="assignment-form">
+        <div class="form-group"><label>Title</label><input id="noteTitle" placeholder="Note title"></div>
+        <div class="form-group"><label>Content</label><textarea id="noteContent" rows="4" placeholder="Write your notes..."></textarea></div>
+        <button id="addNoteBtn" class="submit-btn">Save Note</button>
+      </div>
+      <div id="notesList" class="assignments-list"></div>
+    </div>
+  </div>
+
+  <!-- PDF Section (full from second code) -->
+  <div class="pdf-section">
+    <div class="pdf-header"><h2>📄 Study Materials <span class="pdf-badge">PDF Viewer</span></h2><p>Browse your PDF documents directly. Enter a PDF URL or upload one.</p></div>
+    <div class="pdf-viewer"><iframe id="pdfFrame" title="PDF Viewer"></iframe></div>
+    <div class="pdf-controls"><label>PDF URL:</label><input type="text" id="pdfUrlInput" placeholder="Enter PDF URL (e.g., https://example.com/document.pdf)"><button id="loadPdfBtn">Load PDF</button></div>
+  </div>
+
+  <!-- Floating Timer -->
+  <div id="timerWidget" class="timer-widget" style="display: none;">
+    <span id="timerDisplay">25:00</span>
+    <button id="timerStartPause" style="background:none; border:none; color:white;"><i class="fas fa-play"></i></button>
+    <button id="timerReset" style="background:none; border:none; color:white;"><i class="fas fa-undo-alt"></i></button>
+  </div>
+</div>
+
+<script>
+// ==================== CONFIGURATION (from second code) ====================
+const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000/chat' : '/api/chat';
+const STORAGE_KEY = 'studygenieChats';
+const CURRENT_CHAT_KEY = 'studygenieCurrentChatId';
+const levels = [
+  { id: 'class6', label: '6th' }, { id: 'class7', label: '7th' }, { id: 'class8', label: '8th' },
+  { id: 'class9', label: '9th' }, { id: 'class10', label: '10th' }, { id: 'class11', label: '11th' },
+  { id: 'class12', label: '12th' }, { id: 'jee', label: 'JEE' }
+];
+
+// ==================== AUTHENTICATION ====================
+(function initAuthentication() {
+  try {
+    const userJson = localStorage.getItem('user');
+    if (!userJson) { window.location.href = 'login.html'; return; }
+    const userData = JSON.parse(userJson);
+    if (!userData?.username) throw new Error('Invalid user data');
+    const userNameDisplay = document.getElementById('userNameDisplay');
+    if (userNameDisplay) userNameDisplay.textContent = `Hi, ${userData.username}`;
+    console.log('Logged in as:', userData.username);
+  } catch (error) {
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
+  }
+})();
+
+// ==================== DOM ELEMENTS (from second code) ====================
+const levelBar = document.getElementById('levelBar');
+const chatArea = document.getElementById('chatArea');
+const questionInput = document.getElementById('questionInput');
+const sendBtn = document.getElementById('sendBtn');
+const historyList = document.getElementById('historyList');
+const newChatBtn = document.getElementById('newChatBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const pdfFrame = document.getElementById('pdfFrame');
+const pdfUrlInput = document.getElementById('pdfUrlInput');
+const loadPdfBtn = document.getElementById('loadPdfBtn');
+
+// ==================== APPLICATION STATE ====================
+let currentLevel = 'class6';
+let chats = [];
+let currentChatId = null;
+let isLoading = false;
+
+// ==================== UTILITY ====================
+function generateUniqueId() { return 'chat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8); }
+function formatTime(ts) { return new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+// ==================== CHAT STORAGE (from second code) ====================
+function loadChatsFromStorage() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) try { chats = JSON.parse(saved); if (!Array.isArray(chats)) chats = []; } catch(e) { chats = []; }
+  if (!chats.length) chats = [{ id: generateUniqueId(), title: 'New Chat', level: currentLevel, messages: [{ role: 'system', content: 'Welcome to StudyGenie! Select a level and ask your question.' }], updatedAt: Date.now() }];
+  const savedCurrent = localStorage.getItem(CURRENT_CHAT_KEY);
+  currentChatId = chats.some(c => c.id === savedCurrent) ? savedCurrent : chats[0].id;
+  const curr = getCurrentChat();
+  if (curr?.level) currentLevel = curr.level;
+}
+function saveChatsToStorage() { localStorage.setItem(STORAGE_KEY, JSON.stringify(chats)); if (currentChatId) localStorage.setItem(CURRENT_CHAT_KEY, currentChatId); }
+function getCurrentChat() { return chats.find(c => c.id === currentChatId); }
+function ensureCurrentChat() {
+  let chat = getCurrentChat();
+  if (!chat) {
+    chat = { id: generateUniqueId(), title: 'New Chat', level: currentLevel, messages: [{ role: 'system', content: 'Welcome to StudyGenie!' }], updatedAt: Date.now() };
+    chats.unshift(chat);
+    currentChatId = chat.id;
+    saveChatsToStorage();
+  }
+  return chat;
+}
+
+// ==================== UI RENDERING (Chat) ====================
+function buildLevelButtons() {
+  if (!levelBar) return;
+  levelBar.innerHTML = '';
+  levels.forEach(level => {
+    const btn = document.createElement('button');
+    btn.className = `level-btn ${currentLevel === level.id ? 'active' : ''}`;
+    btn.textContent = level.label;
+    btn.addEventListener('click', () => {
+      if (isLoading) return showTemporaryMessage('Please wait...', 'system');
+      currentLevel = level.id;
+      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const chat = ensureCurrentChat();
+      chat.level = currentLevel;
+      chat.updatedAt = Date.now();
+      addSystemMessage(`Switched to ${level.label} level.`);
+      saveChatsToStorage();
+      renderHistory();
+    });
+    levelBar.appendChild(btn);
+  });
+}
+
+function addMessage(role, content, save = true) {
+  if (!chatArea) return;
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `message ${role}`;
+  msgDiv.textContent = content;
+  chatArea.appendChild(msgDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  if (save) {
+    const chat = ensureCurrentChat();
+    chat.messages.push({ role, content });
+    chat.updatedAt = Date.now();
+    if (role === 'user' && chat.title === 'New Chat') chat.title = content.slice(0, 34) + (content.length > 34 ? '...' : '');
+    saveChatsToStorage();
+    renderHistory();
+  }
+}
+function addSystemMessage(text, save = true) {
+  if (!chatArea) return;
+  const sysDiv = document.createElement('div');
+  sysDiv.className = 'system';
+  sysDiv.textContent = text;
+  chatArea.appendChild(sysDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  if (save) {
+    const chat = ensureCurrentChat();
+    chat.messages.push({ role: 'system', content: text });
+    chat.updatedAt = Date.now();
+    saveChatsToStorage();
+    renderHistory();
+  }
+}
+function showTemporaryMessage(text, type = 'system') {
+  const div = document.createElement('div');
+  div.className = type === 'error' ? 'error-message' : 'system';
+  div.textContent = text;
+  chatArea.appendChild(div);
+  setTimeout(() => div.remove(), 3000);
+}
+function showLoading() {
+  const ld = document.createElement('div');
+  ld.className = 'loading';
+  ld.id = 'loadingMsg';
+  ld.textContent = '🤔 Thinking...';
+  chatArea.appendChild(ld);
+}
+function hideLoading() { document.getElementById('loadingMsg')?.remove(); }
+function renderMessages() {
+  if (!chatArea) return;
+  const chat = ensureCurrentChat();
+  chatArea.innerHTML = '';
+  chat.messages.forEach(msg => {
+    if (msg.role === 'system') {
+      const sys = document.createElement('div'); sys.className = 'system'; sys.textContent = msg.content; chatArea.appendChild(sys);
+    } else {
+      const msgDiv = document.createElement('div'); msgDiv.className = `message ${msg.role}`; msgDiv.textContent = msg.content; chatArea.appendChild(msgDiv);
+    }
+  });
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+function renderHistory() {
+  if (!historyList) return;
+  historyList.innerHTML = '';
+  const sorted = [...chats].sort((a,b)=>b.updatedAt - a.updatedAt);
+  if (!sorted.length) { historyList.innerHTML = '<div class="empty-state">No history.</div>'; return; }
+  sorted.forEach(chat => {
+    const item = document.createElement('button');
+    item.className = `history-item ${chat.id === currentChatId ? 'active' : ''}`;
+    item.innerHTML = `<div class="history-title">${escapeHtml(chat.title)}</div><div class="history-meta"><span>${levels.find(l=>l.id===chat.level)?.label||'CHAT'}</span><span>${formatTime(chat.updatedAt)}</span></div>`;
+    item.addEventListener('click', () => {
+      if (isLoading) return showTemporaryMessage('Please wait...', 'system');
+      currentChatId = chat.id;
+      const sel = getCurrentChat();
+      if (sel?.level) currentLevel = sel.level;
+      buildLevelButtons();
+      renderMessages();
+      renderHistory();
+    });
+    historyList.appendChild(item);
+  });
+}
+
+// ==================== CHAT ACTIONS ====================
+function newChat() {
+  if (isLoading) return showTemporaryMessage('Please wait...', 'system');
+  const chat = { id: generateUniqueId(), title: 'New Chat', level: currentLevel, messages: [{ role: 'system', content: '✨ New chat started!' }], updatedAt: Date.now() };
+  chats.unshift(chat);
+  currentChatId = chat.id;
+  saveChatsToStorage();
+  buildLevelButtons();
+  renderMessages();
+  renderHistory();
+  if (questionInput) { questionInput.value = ''; questionInput.focus(); }
+}
+function clearAllHistory() {
+  if (isLoading) return showTemporaryMessage('Please wait...', 'system');
+  if (!confirm('Delete all conversations?')) return;
+  const newChat = { id: generateUniqueId(), title: 'New Chat', level: currentLevel, messages: [{ role: 'system', content: '✨ History cleared!' }], updatedAt: Date.now() };
+  chats = [newChat];
+  currentChatId = newChat.id;
+  saveChatsToStorage();
+  buildLevelButtons();
+  renderMessages();
+  renderHistory();
+}
+
+// ==================== API / CHAT ====================
+async function sendMessage() {
+  if (isLoading) return showTemporaryMessage('Please wait...', 'system');
+  const q = questionInput.value.trim();
+  if (!q) return;
+  questionInput.value = '';
+  addMessage('user', q);
+  isLoading = true;
+  sendBtn.disabled = true;
+  showLoading();
+
+  try {
+    const chat = ensureCurrentChat();
+    const history = chat.messages.filter(m => m.role === 'user' || m.role === 'assistant').slice(-10);
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: q, level: currentLevel, history: history })
+    });
+    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    const data = await response.json();
+    const reply = data.reply || "I'm not sure how to respond.";
+    addMessage('assistant', reply);
+  } catch (error) {
+    console.error('Chat error:', error);
+    addMessage('assistant', `⚠️ Could not connect to backend. Make sure server is running at ${API_URL}\n\nUsing demo response...`);
+    let reply = '';
+    switch(currentLevel) {
+      case 'class6': reply = `📚 [6th Grade]\n\n${q}\n\nSimple explanation for 6th grade.`; break;
+      case 'class7': reply = `📖 [7th Grade]\n\n${q}\n\nExplanation for 7th grade.`; break;
+      case 'class8': reply = `🔬 [8th Grade]\n\n${q}\n\n8th grade level explanation.`; break;
+      case 'class9': reply = `⚡ [9th Grade]\n\n${q}\n\n9th grade level explanation.`; break;
+      case 'class10': reply = `🎯 [10th Grade]\n\n${q}\n\n10th grade level explanation.`; break;
+      case 'class11': reply = `📊 [11th Grade]\n\n${q}\n\n11th grade level explanation.`; break;
+      case 'class12': reply = `🎓 [12th Grade]\n\n${q}\n\n12th grade level explanation.`; break;
+      case 'jee': reply = `🏆 [JEE Level]\n\n${q}\n\nAdvanced JEE explanation.`; break;
+      default: reply = `💡 ${q}\n\nDemo response.`;
+    }
+    addMessage('assistant', reply);
+  } finally {
+    hideLoading();
+    isLoading = false;
+    sendBtn.disabled = false;
+    questionInput.focus();
+  }
+}
+
+// ==================== PDF VIEWER ====================
+function isValidUrl(str) { try { const u = new URL(str); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } }
+function loadPdf() {
+  let url = pdfUrlInput.value.trim();
+  if (!url) { alert('Enter URL'); return; }
+  if (!url.startsWith('http')) url = 'https://' + url;
+  if (!isValidUrl(url)) { alert('Invalid URL'); return; }
+  if (!url.toLowerCase().endsWith('.pdf') && !confirm('Not a PDF, continue?')) return;
+  pdfFrame.src = url;
+}
+
+// ==================== TAB SWITCHING ====================
+function setupTabs() {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(`${tab}Tab`).classList.add('active');
+    });
+  });
+}
+
+// ==================== ASSIGNMENT FUNCTIONS (from second code) ====================
+let assignments = JSON.parse(localStorage.getItem('assignments') || '[]');
+function renderAssignments() {
+  const list = document.getElementById('submissionsList');
+  if (!list) return;
+  if (!assignments.length) { list.innerHTML = '<p style="color: var(--muted); text-align:center;">No submissions yet. Upload your first assignment!</p>'; return; }
+  list.innerHTML = assignments.map(a => `
+    <div class="submission-item">
+      <div class="submission-title">📄 ${escapeHtml(a.topic)}</div>
+      <div class="submission-meta">Submitted: ${new Date(a.date).toLocaleString()} | File: ${a.fileName || 'No file'}</div>
+      <div>${escapeHtml(a.description)}</div>
+    </div>
+  `).join('');
+}
+function submitAssignment() {
+  const topic = document.getElementById('assignmentTopic')?.value.trim();
+  const desc = document.getElementById('assignmentDescription')?.value.trim();
+  const file = document.getElementById('assignmentFile')?.files[0];
+  if (!topic || !desc) { alert('Fill topic and description'); return; }
+  const fileName = file ? file.name : null;
+  if (file && file.size > 10*1024*1024) { alert('File too large'); return; }
+  assignments.unshift({ id: Date.now(), topic, description: desc, fileName, date: new Date().toISOString(), user: JSON.parse(localStorage.getItem('user')||'{}').username });
+  localStorage.setItem('assignments', JSON.stringify(assignments));
+  document.getElementById('assignmentTopic').value = '';
+  document.getElementById('assignmentDescription').value = '';
+  document.getElementById('assignmentFile').value = '';
+  renderAssignments();
+  alert('Assignment submitted!');
+  // XP from assignment
+  addXP(20);
+  userStats.assignmentsSubmitted = (userStats.assignmentsSubmitted || 0) + 1;
+  saveStats(); updateStatsUI();
+}
+
+// ==================== TEST FUNCTIONS (from second code) ====================
+function generateQuestions(topic, level) {
+  const bank = {
+    'photosynthesis': [
+      { question: 'What is the main pigment for photosynthesis?', options: ['Chlorophyll','Hemoglobin','Melanin','Carotene'], correct:0, explanation:'Chlorophyll captures light energy.' },
+      { question: 'Products of photosynthesis?', options: ['Oxygen & Glucose','CO₂ & Water','Water & Glucose','Oxygen & CO₂'], correct:0, explanation:'Plants produce glucose and oxygen.' },
+      { question: 'Where does photosynthesis occur?', options: ['Roots','Stem','Leaves','Flowers'], correct:2, explanation:'Leaves contain chloroplasts.' },
+      { question: 'What is the energy source for photosynthesis?', options: ['Water','Soil','Sunlight','CO₂'], correct:2, explanation:'Sunlight provides energy.' },
+      { question: 'Which gas is released during photosynthesis?', options: ['CO₂','Oxygen','Nitrogen','Hydrogen'], correct:1, explanation:'Oxygen is released.' }
+    ],
+    'fractions': [
+      { question: '1/2 + 1/4 = ?', options: ['1/6','2/6','3/4','1/8'], correct:2, explanation:'1/2 = 2/4, so 3/4.' },
+      { question: 'Equivalent to 0.5?', options: ['1/3','2/4','3/5','4/6'], correct:1, explanation:'2/4 = 1/2 = 0.5.' },
+      { question: '2/3 of 12 = ?', options: ['6','8','4','10'], correct:1, explanation:'2/3 × 12 = 8.' },
+      { question: 'Which fraction is largest?', options: ['1/2','2/3','3/4','4/5'], correct:3, explanation:'4/5 = 0.8, largest.' }
+    ]
+  };
+  let questions = bank[topic.toLowerCase()] || [
+    { question: `What is ${topic}?`, options: ['Definition A','Definition B','Definition C','Definition D'], correct:0, explanation:'Basic definition.' },
+    { question: `Application of ${topic}?`, options: ['App1','App2','App3','App4'], correct:0, explanation:'Real-world use.' },
+    { question: `Importance of ${topic}?`, options: ['Important A','Important B','Important C','Important D'], correct:0, explanation:'This topic is important because...' }
+  ];
+  const levelMap = { class6:'6th', class7:'7th', class8:'8th', class9:'9th', class10:'10th', class11:'11th', class12:'12th', jee:'JEE' };
+  return questions.slice(0,5).map(q => ({ ...q, question: `[${levelMap[level]}] ${q.question}` }));
+}
+function renderTest() {
+  const topic = document.getElementById('testTopic')?.value.trim();
+  const level = document.getElementById('testLevel')?.value;
+  if (!topic) { alert('Enter a topic'); return; }
+  const questions = generateQuestions(topic, level);
+  window.currentTest = { questions };
+  const container = document.getElementById('testQuestions');
+  container.innerHTML = `
+    <h3>📝 Test on "${escapeHtml(topic)}"</h3>
+    ${questions.map((q, idx) => `
+      <div class="question-card">
+        <div class="question-text"><strong>Q${idx+1}.</strong> ${escapeHtml(q.question)}</div>
+        <div class="options">
+          ${q.options.map((opt, i) => `<label class="option"><input type="radio" name="q${idx}" value="${i}"> ${String.fromCharCode(65+i)}. ${escapeHtml(opt)}</label>`).join('')}
+        </div>
+      </div>
+    `).join('')}
+    <button class="submit-test-btn" onclick="submitTest()">📊 Submit Test</button>
+  `;
+  document.getElementById('testResults').innerHTML = '';
+  document.getElementById('testResults').classList.remove('show');
+}
+function submitTest() {
+  if (!window.currentTest) return;
+  let score = 0;
+  const total = window.currentTest.questions.length;
+  window.currentTest.questions.forEach((q, idx) => {
+    const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+    if (selected && parseInt(selected.value) === q.correct) score++;
+  });
+  const percent = (score/total)*100;
+  const resultsDiv = document.getElementById('testResults');
+  let grade = percent >= 90 ? '🌟 Excellent!' : percent >= 70 ? '👍 Good job!' : percent >= 50 ? '📚 Keep practicing!' : '💪 Need more study!';
+  resultsDiv.innerHTML = `
+    <div class="score-card">
+      <h3>${grade}</h3>
+      <div class="score">${score}/${total}</div>
+      <div>Score: ${percent}%</div>
+      <button onclick="reviewAnswers()" style="margin-top:15px; padding:8px 16px; background:white; border:none; border-radius:8px; cursor:pointer;">🔍 Review Answers</button>
+      <button onclick="renderTest()" style="margin-top:15px; margin-left:10px; padding:8px 16px; background:white; border:none; border-radius:8px; cursor:pointer;">🔄 Try Again</button>
+    </div>
+  `;
+  resultsDiv.classList.add('show');
+  // XP for test completion
+  addXP(50);
+  userStats.testsCompleted++;
+  // Update subject scores roughly based on topic
+  let topic = document.getElementById('testTopic')?.value?.toLowerCase() || '';
+  if (topic.includes('math')) userStats.subjectScores.Math = Math.min(100, userStats.subjectScores.Math + 5);
+  else if (topic.includes('science')) userStats.subjectScores.Science = Math.min(100, userStats.subjectScores.Science + 5);
+  else userStats.subjectScores.English = Math.min(100, userStats.subjectScores.English + 5);
+  saveStats(); updateStatsUI();
+}
+function reviewAnswers() {
+  if (!window.currentTest) return;
+  let html = '<div><h4>📖 Answer Review:</h4>';
+  window.currentTest.questions.forEach((q, idx) => {
+    const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+    const isCorrect = selected && parseInt(selected.value) === q.correct;
+    const userAns = selected ? q.options[parseInt(selected.value)] : 'Not answered';
+    html += `<div style="margin:10px 0; padding:10px; background:${isCorrect?'#e8f5e9':'#ffebee'}; border-radius:8px;">
+      <strong>Q${idx+1}:</strong> ${escapeHtml(q.question)}<br>
+      <span style="color:${isCorrect?'#2e7d32':'#c62828'}">${isCorrect?'✓ Correct':'✗ Incorrect'}</span><br>
+      <strong>Your answer:</strong> ${escapeHtml(userAns)}<br>
+      <strong>Correct answer:</strong> ${escapeHtml(q.options[q.correct])}<br>
+      <strong>💡 Explanation:</strong> ${escapeHtml(q.explanation)}
+    </div>`;
+  });
+  html += '</div>';
+  const resultsDiv = document.getElementById('testResults');
+  const existing = resultsDiv.querySelector('.review-section');
+  if (existing) existing.remove();
+  const reviewDiv = document.createElement('div');
+  reviewDiv.className = 'review-section';
+  reviewDiv.innerHTML = html;
+  resultsDiv.appendChild(reviewDiv);
+}
+
+// ==================== NEW FEATURES: XP, STREAK, BADGES, FLASHCARDS, NOTES, VOICE, TIMER, THEME ====================
+let userStats = JSON.parse(localStorage.getItem('studyGenieStats')) || {
+  xp: 0,
+  level: 1,
+  streak: 0,
+  lastLogin: null,
+  totalQuestions: 0,
+  testsCompleted: 0,
+  assignmentsSubmitted: 0,
+  badges: [],
+  subjectScores: { Math: 0, Science: 0, English: 0 }
+};
+let flashcards = JSON.parse(localStorage.getItem('flashcards')) || [];
+let notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+function addXP(amount) {
+  userStats.xp += amount;
+  let newLevel = Math.floor(userStats.xp / 100) + 1;
+  if (newLevel > userStats.level) {
+    userStats.level = newLevel;
+    alert(`🎉 Level Up! You reached Level ${newLevel}!`);
+  }
+  updateStatsUI();
+  saveStats();
+  checkBadges();
+}
+function checkBadges() {
+  let newBadges = [];
+  if (userStats.totalQuestions >= 10 && !userStats.badges.includes('Curious Mind')) newBadges.push('Curious Mind');
+  if (userStats.streak >= 7 && !userStats.badges.includes('Consistent Learner')) newBadges.push('Consistent Learner');
+  if (userStats.testsCompleted >= 5 && !userStats.badges.includes('Quiz Master')) newBadges.push('Quiz Master');
+  if (userStats.xp >= 500 && !userStats.badges.includes('Scholar')) newBadges.push('Scholar');
+  if (newBadges.length) { userStats.badges = [...userStats.badges, ...newBadges]; saveStats(); renderBadges(); }
+}
+function saveStats() { localStorage.setItem('studyGenieStats', JSON.stringify(userStats)); }
+function updateStatsUI() {
+  document.getElementById('totalXP').innerText = userStats.xp;
+  document.getElementById('levelNum').innerText = userStats.level;
+  document.getElementById('streakDays').innerText = userStats.streak;
+  document.getElementById('totalQuestions').innerText = userStats.totalQuestions;
+  document.getElementById('testsCompleted').innerText = userStats.testsCompleted;
+  let percent = (userStats.xp % 100) / 100 * 100;
+  document.getElementById('xpFill').style.width = percent + '%';
+  renderBadges();
+  renderSubjectChart();
+  renderRecommendations();
+}
+function renderBadges() {
+  const container = document.getElementById('badgesList');
+  if (!container) return;
+  container.innerHTML = userStats.badges.map(b => `<div class="badge"><i class="fas fa-medal"></i> ${b}</div>`).join('');
+  if (!userStats.badges.length) container.innerHTML = '<p>Complete achievements to earn badges!</p>';
+}
+let chart;
+function renderSubjectChart() {
+  const ctx = document.getElementById('subjectChart')?.getContext('2d');
+  if (!ctx) return;
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: Object.keys(userStats.subjectScores), datasets: [{ label: 'Performance %', data: Object.values(userStats.subjectScores), backgroundColor: '#8b5cf6' }] },
+    options: { scales: { y: { max: 100 } } }
+  });
+}
+function renderRecommendations() {
+  const weakSubjects = Object.entries(userStats.subjectScores).filter(([_,v]) => v < 60).map(([k])=>k);
+  let rec = weakSubjects.length ? `Focus on ${weakSubjects.join(', ')}. Try the test section!` : 'Great job! Keep practicing to stay sharp.';
+  document.getElementById('recommendations').innerHTML = `<i class="fas fa-lightbulb"></i> ${rec}`;
+}
+
+// Voice input
+const voiceBtn = document.getElementById('voiceBtn');
+let recognition = null;
+if ('webkitSpeechRecognition' in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.onresult = (e) => { document.getElementById('questionInput').value = e.results[0][0].transcript; voiceBtn.classList.remove('recording'); };
+  recognition.onend = () => voiceBtn.classList.remove('recording');
+  voiceBtn.onclick = () => { recognition.start(); voiceBtn.classList.add('recording'); };
+} else voiceBtn.style.display = 'none';
+
+// Timer (Pomodoro)
+let timerInterval, timerSeconds = 25*60, timerRunning = false;
+const timerWidget = document.getElementById('timerWidget');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerToggleBtn = document.getElementById('timerToggleBtn');
+timerToggleBtn.onclick = () => { timerWidget.style.display = timerWidget.style.display === 'none' ? 'flex' : 'none'; };
+document.getElementById('timerStartPause').onclick = () => {
+  if (timerRunning) { clearInterval(timerInterval); timerRunning = false; }
+  else { timerRunning = true; timerInterval = setInterval(() => { if (timerSeconds <= 0) { clearInterval(timerInterval); alert('Time\'s up!'); timerRunning = false; } else { timerSeconds--; updateTimerDisplay(); } }, 1000); }
+};
+document.getElementById('timerReset').onclick = () => { clearInterval(timerInterval); timerRunning = false; timerSeconds = 25*60; updateTimerDisplay(); };
+function updateTimerDisplay() { let m = Math.floor(timerSeconds/60); let s = timerSeconds%60; timerDisplay.innerText = `${m}:${s<10?'0'+s:s}`; }
+
+// Flashcards
+function renderFlashcards() {
+  const container = document.getElementById('flashcardList');
+  if (!container) return;
+  if (!flashcards.length) { container.innerHTML = '<p style="color: var(--muted); text-align:center;">No flashcards yet. Create your first!</p>'; return; }
+  container.innerHTML = flashcards.map((card, i) => `
+    <div class="submission-item">
+      <div class="submission-title">Q: ${escapeHtml(card.question)}</div>
+      <div>A: ${escapeHtml(card.answer)}</div>
+      <button class="ghost-btn" style="margin-top:8px;" onclick="deleteFlashcard(${i})">Delete</button>
+    </div>
+  `).join('');
+}
+function addFlashcard() {
+  const q = document.getElementById('flashcardQuestion').value.trim();
+  const a = document.getElementById('flashcardAnswer').value.trim();
+  if (!q || !a) return alert('Fill both fields');
+  flashcards.push({ question: q, answer: a });
+  localStorage.setItem('flashcards', JSON.stringify(flashcards));
+  renderFlashcards();
+  document.getElementById('flashcardQuestion').value = '';
+  document.getElementById('flashcardAnswer').value = '';
+}
+function deleteFlashcard(i) { flashcards.splice(i,1); localStorage.setItem('flashcards', JSON.stringify(flashcards)); renderFlashcards(); }
+
+// Notes
+function renderNotes() {
+  const container = document.getElementById('notesList');
+  if (!container) return;
+  if (!notes.length) { container.innerHTML = '<p style="color: var(--muted); text-align:center;">No notes yet. Create your first!</p>'; return; }
+  container.innerHTML = notes.map((note, i) => `
+    <div class="submission-item">
+      <div class="submission-title">📌 ${escapeHtml(note.title)}</div>
+      <div>${escapeHtml(note.content)}</div>
+      <button class="ghost-btn" style="margin-top:8px;" onclick="deleteNote(${i})">Delete</button>
+    </div>
+  `).join('');
+}
+function addNote() {
+  const title = document.getElementById('noteTitle').value.trim();
+  const content = document.getElementById('noteContent').value.trim();
+  if (!title || !content) return alert('Fill title and content');
+  notes.push({ title, content, date: new Date().toISOString() });
+  localStorage.setItem('notes', JSON.stringify(notes));
+  renderNotes();
+  document.getElementById('noteTitle').value = '';
+  document.getElementById('noteContent').value = '';
+}
+function deleteNote(i) { notes.splice(i,1); localStorage.setItem('notes', JSON.stringify(notes)); renderNotes(); }
+
+// Theme toggle
+document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); };
+if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+
+// Override sendMessage to track questions asked
+const originalSendMessage = sendMessage;
+window.sendMessage = async function() {
+  await originalSendMessage();
+  userStats.totalQuestions++;
+  addXP(10);
+  saveStats(); updateStatsUI();
+};
+sendMessage = window.sendMessage; // reassign
+
+// Also need to ensure that when test is submitted, we already add XP, but we have that in submitTest.
+// Also assignment submit already adds XP.
+
+// Initialize all
+function initAll() {
+  loadChatsFromStorage();
+  buildLevelButtons();
+  renderMessages();
+  renderHistory();
+  setupEventListeners();
+  setupTabs();
+  renderAssignments();
+  updateStatsUI();
+  renderFlashcards();
+  renderNotes();
+  // daily streak update
+  const today = new Date().toDateString();
+  if (userStats.lastLogin !== today) {
+    if (userStats.lastLogin && (new Date() - new Date(userStats.lastLogin)) < 86400000*2) userStats.streak++;
+    else userStats.streak = 1;
+    userStats.lastLogin = today;
+    saveStats(); updateStatsUI();
+  }
+}
+
+function setupEventListeners() {
+  sendBtn.onclick = sendMessage;
+  questionInput.addEventListener('keypress', e => { if (e.key === 'Enter' && !isLoading) sendMessage(); });
+  newChatBtn.addEventListener('click', newChat);
+  clearHistoryBtn.addEventListener('click', clearAllHistory);
+  logoutBtn.addEventListener('click', () => { localStorage.removeItem('user'); window.location.href = 'login.html'; });
+  loadPdfBtn.addEventListener('click', loadPdf);
+  pdfUrlInput.value = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+  document.getElementById('submitAssignmentBtn')?.addEventListener('click', submitAssignment);
+  document.getElementById('generateTestBtn')?.addEventListener('click', renderTest);
+  document.getElementById('addFlashcardBtn')?.addEventListener('click', addFlashcard);
+  document.getElementById('addNoteBtn')?.addEventListener('click', addNote);
+}
+
+initAll();
+</script>
+</body>
+</html>
